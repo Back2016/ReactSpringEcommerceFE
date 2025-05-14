@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-
+import { useCartStore } from './useCartStore'
 interface User {
   id: number
   email: string
@@ -21,7 +21,10 @@ interface AuthState {
   getUserFirstName: () => string | null
   getUserLastName: () => string | null
   getUser: () => User | null
+  setToken: (token: string) => void
+  resetToken: () => void
   isAccessTokenExpired: () => boolean
+  updateNames: (firstName: string, lastName: string) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -30,20 +33,29 @@ export const useAuthStore = create<AuthState>()(
     user: null,
     token: null,
     accessTokenExpiresAt: null,
-    login: (token: string, user: User) =>
+    login: (token: string, user: User) => {
+      useCartStore.getState().resetSync()
       set({
         isAuthenticated: true,
         user,
         token,
         accessTokenExpiresAt: Date.now() + 5 * 59 * 1000,
-      }),
-    logout: () =>
+      })
+    },
+    logout: () => {
+      useCartStore.getState().resetSync()
       set({
         isAuthenticated: false,
         user: null,
         token: null,
         accessTokenExpiresAt: null,
-      }),
+      })
+    },
+    setToken: (token: string) => set({
+      token,
+      accessTokenExpiresAt: Date.now() + 5 * 59 * 1000
+    }),
+    resetToken: () => set({ token: null }),
     getUser: () => get().user,
     getAccessToken: () => get().token,
     getUserId: () => get().user?.id ?? null,
@@ -55,6 +67,12 @@ export const useAuthStore = create<AuthState>()(
       // If the access token is not set, it is expired, return true
       return !expiresAt || (Date.now() >= expiresAt)
     },
+    updateNames: (firstName: string, lastName: string) =>
+      set((state) => ({
+        user: state.user
+          ? { ...state.user, firstName, lastName }
+          : null,
+      })),
   }),
     {
       name: 'auth-store',

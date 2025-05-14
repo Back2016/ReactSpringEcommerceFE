@@ -15,10 +15,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const page = parseInt(searchParamsObj.page as string) || 1;
   const limit = parseInt(searchParamsObj.limit as string) || 12;
   const categoryNameWithAmpersand = convertHyphenToAmpersand(categoryName);
-  console.log('Category name with ampersand:', categoryNameWithAmpersand);
+  // console.log('Category name with ampersand:', categoryNameWithAmpersand);
 
   const paginatedResponse = await fetchPaginatedProductsByCategory(categoryNameWithAmpersand, page, limit);
-  console.log('Paginated response:', paginatedResponse);
+  // console.log('Paginated response:', paginatedResponse);
   // console.log('Products:', products);
   const cardProducts = paginatedResponse.items.map((product: Product) => ({
     id: product.id,

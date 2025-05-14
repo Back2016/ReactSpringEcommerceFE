@@ -13,6 +13,10 @@ interface CartState {
   removeFromCart: (productId: number) => void
   updateQuantity: (productId: number, quantity: number, onSuccess?: (msg: string) => void, onFail?: (msg: string) => void) => void
   clearCart: () => void
+  setCart: (items: CartItem[]) => void
+  hasSyncedOnce: boolean
+  markSynced: () => void
+  resetSync: () => void
 }
 
 export const useCartStore = create<CartState>()(
@@ -24,8 +28,9 @@ export const useCartStore = create<CartState>()(
         const state = get();
         const existingItem = state.cart.find((item) => item.id === product.id);
         const currentQty = existingItem?.quantity || 0;
+        const newQty = currentQty + (product.quantity || 1);
 
-        if (currentQty + 1 > product.inventory) {
+        if (newQty > product.inventory) {
           onFail?.(`Not enough stock. Only ${product.inventory} left in stock`);
           return;
         }
@@ -33,13 +38,13 @@ export const useCartStore = create<CartState>()(
         if (existingItem) {
           set({
             cart: state.cart.map((item) =>
-              item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+              item.id === product.id ? { ...item, quantity: newQty } : item
             )
           });
           onSuccess?.(`${product.name} quantity updated`);
         } else {
           set({
-            cart: [...state.cart, { ...product, quantity: 1 }]
+            cart: [...state.cart, { ...product, quantity: product.quantity || 1 }]
           });
           onSuccess?.(`Product ${product.name} added to cart`);
         }
@@ -69,6 +74,10 @@ export const useCartStore = create<CartState>()(
           cart: state.cart.filter((item) => item.id !== productId),
         })),
       clearCart: () => set({ cart: [] }),
+      setCart: (items) => set({ cart: items }),
+      hasSyncedOnce: false,
+      markSynced: () => set({ hasSyncedOnce: true }),
+      resetSync: () => set({ hasSyncedOnce: false }),
     }),
     {
       name: 'cart-store',

@@ -1,3 +1,7 @@
+import { useAuthStore } from '@/store/useAuthStore'
+import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
+
 interface RegisterRequest {
     firstName: string
     lastName: string
@@ -67,11 +71,12 @@ export async function logout() {
     })
 
     if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Logout failed')
+        throw new Error('Logout failed')
     }
 
-    return response.json()
+    // Read the response text
+    const text = await response.text()
+    return text
 }
 
 interface RefreshResponse {
@@ -81,7 +86,7 @@ interface RefreshResponse {
 export async function refreshAccessToken(): Promise<RefreshResponse> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/refresh-token`, {
         method: 'POST',
-        credentials: 'include', // include cookies for refresh token
+        credentials: 'include'
     })
 
     if (!response.ok) {
@@ -90,4 +95,46 @@ export async function refreshAccessToken(): Promise<RefreshResponse> {
     }
 
     return response.json()
+}
+
+export const withValidToken = async <T,>(
+    apiCall: (token: string) => Promise<T>,
+    {
+        getAccessToken,
+        isAccessTokenExpired,
+        getUser,
+        setToken,
+        logout,
+        router
+    }: {
+        getAccessToken: () => string | null
+        isAccessTokenExpired: () => boolean
+        getUser: () => any
+        setToken: (token: string) => void
+        logout: () => void
+        router: any
+    }
+): Promise<T | undefined> => {
+    try {
+        const token = getAccessToken()
+        if (!token) return
+
+        if (isAccessTokenExpired()) {
+            const { accessToken } = await refreshAccessToken()
+            const currentUser = getUser()
+            if (currentUser) {
+                setToken(accessToken)
+                toast.success('Access token refreshed')
+                return await apiCall(accessToken)
+            } else {
+                logout()
+                router.push('/')
+                return
+            }
+        }
+        return await apiCall(token)
+    } catch (err) {
+        console.error('API call failed:', err)
+        throw err
+    }
 }

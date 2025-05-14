@@ -20,12 +20,44 @@ export type Product = {
     category: Category;
 };
 
-export type CardProduct = Omit<Product, "images"> & {
-    // Only use one feature image for the card product
-    image: Image;
-};
+export type CardProduct = {
+    id: number
+    name: string
+    description: string
+    price: number
+    inventory: number
+    image: Image
+    category: Category
+    quantity?: number
+}
 
 export type DetailedProduct = Product & {
     longDescription: string;
     productSpecs: Record<string, string>;
 };
+
+export type CartItem = {
+    id: number
+    cartId: number
+    productId: number
+    quantity: number
+}
+
+export type CartItems = {
+    itemId: number
+    quantity: number
+    unitPrice: number
+    totalPrice: number
+    product: Product
+}
+
+export type CartResponse = {
+    cartId: number
+    items: CartItems[]
+    totalAmount: number
+}
+
+export type SyncCartRequest = {
+    productId: number
+    quantity: number
+}

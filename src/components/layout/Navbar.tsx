@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ShoppingCart, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/useCartStore'
 import { useAuthStore } from '@/store/useAuthStore'
+import { logout as apiLogout } from '@/lib/api/auth'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -13,9 +15,23 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { User, LogOut } from 'lucide-react'
 export function Navbar() {
+  const router = useRouter()
   const cart = useCartStore((state) => state.cart)
+  const clearCart = useCartStore((state) => state.clearCart)
   const { isAuthenticated, logout, user, getUserId } = useAuthStore()
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0)
+
+  const handleLogout = async () => {
+    try {
+      const response = await apiLogout()
+      console.log('Logout response:', response)
+      logout()
+      clearCart()
+      router.replace('/')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
 
   return (
     <nav className="border-b">
@@ -55,9 +71,12 @@ export function Navbar() {
                     <Link href={`/profile/${getUserId()}`}>Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="#">Orders</Link>
+                    <Link href={`/orders/${getUserId()}`}>Orders</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout} className="focus:text-red-600">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="focus:text-red-600"
+                  >
                     Logout
                     <LogOut className="ml-2 h-4 w-4" />
                   </DropdownMenuItem>

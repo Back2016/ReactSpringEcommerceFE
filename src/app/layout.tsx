@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Toaster } from 'react-hot-toast'
 import { Footer } from "@/components/layout/Footer";
+import { CartSyncOnLogin } from "@/components/syncCart/CartSyncOnLogin";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Navbar />
         <main className="container mx-auto px-4 py-8">
+          <CartSyncOnLogin />
           {children}
         </main>
         <Toaster position="top-center" />

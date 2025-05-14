@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { useCartStore } from '@/store/useCartStore'
+import { useAuthStore } from '@/store/useAuthStore'
 import Link from 'next/link'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
@@ -12,6 +14,9 @@ import { ProductCard } from '@/components/product/ProductCard'
 import { CardProduct, Category } from '@/lib/types'
 import { toast } from 'react-hot-toast'
 import { convertAmpersandToHyphen } from '@/lib/utils'
+import { withValidToken } from '@/lib/api/auth'
+import { useRouter } from 'next/navigation'
+import { addItemToCart } from '@/lib/api/cart'
 
 type Props = {
   featuredProducts: CardProduct[];
@@ -19,17 +24,69 @@ type Props = {
 };
 
 export default function HomePage({ featuredProducts, categories }: Props) {
-  const addToCart = useCartStore((state) => state.addToCart)
+  const [hydrated, setHydrated] = useState(false)
+  const router = useRouter()
 
-  const handleAddToCart = (product: CardProduct) => {
+  const addToCart = useCartStore((state) => state.addToCart)
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+  const getAccessToken = useAuthStore(state => state.getAccessToken)
+  const isAccessTokenExpired = useAuthStore(state => state.isAccessTokenExpired)
+  const getUser = useAuthStore(state => state.getUser)
+  const logout = useAuthStore(state => state.logout)
+  const setToken = useAuthStore(state => state.setToken)
+
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    const validateAndRefresh = async () => {
+      if (!hydrated) return
+
+      if (isAuthenticated) {
+        try {
+          await withValidToken(
+            async () => Promise.resolve(),
+            { getAccessToken, isAccessTokenExpired, getUser, setToken, logout, router }
+          )
+        } catch (err) {
+          toast.error('Session expired. Please log in again.')
+          logout()
+          router.push('/')
+        }
+      }
+    }
+
+    validateAndRefresh()
+  }, [isAuthenticated, hydrated])
+
+  const handleAddToCart = async (product: CardProduct) => {
+    // First update local cart
     addToCart(
       product,
       (msg) => toast.success(msg),
       (msg) => toast.error(msg)
     )
+
+    // Then sync with backend if authenticated
+    if (isAuthenticated) {
+      try {
+        await withValidToken(
+          async (token) => {
+            await addItemToCart(product.id, 1, token)
+          },
+          { getAccessToken, isAccessTokenExpired, getUser, setToken, logout, router }
+        )
+      } catch (err) {
+        toast.error('Failed to sync cart with server')
+        console.error(err)
+      }
+    }
   }
 
-  // console.log("Featured Products:", featuredProducts);
+  if (!hydrated) {
+    return null
+  }
 
   return (
     <div className="space-y-12">

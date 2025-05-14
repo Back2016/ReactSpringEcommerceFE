@@ -11,7 +11,7 @@ export default async function CategoriesPage() {
         <div className="container mx-auto px-4 py-12">
             <h1 className="text-4xl font-bold mb-12 text-center">Shop by Category</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 gap-8">
                 {categories.map((category: Category) => (
                     <Link
                         key={category.id}

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/useCartStore'
+import { useAuthStore } from '@/store/useAuthStore'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import 'swiper/css'
@@ -14,6 +15,9 @@ import { DetailedProduct } from '@/lib/types'
 import { BASE_URL } from '@/lib/config'
 import toast from 'react-hot-toast'
 import { getPublicUrl } from '@/lib/utils'
+import { withValidToken } from '@/lib/api/auth'
+import { addItemToCart } from '@/lib/api/cart'
+import { useRouter } from 'next/navigation'
 
 interface ProductPageProps {
     product: DetailedProduct
@@ -21,22 +25,49 @@ interface ProductPageProps {
 
 export function ProductPage({ product }: ProductPageProps) {
     const [quantity, setQuantity] = useState(1)
+    const router = useRouter()
     const addToCart = useCartStore((state) => state.addToCart)
+    const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+    const getAccessToken = useAuthStore(state => state.getAccessToken)
+    const isAccessTokenExpired = useAuthStore(state => state.isAccessTokenExpired)
+    const getUser = useAuthStore(state => state.getUser)
+    const logout = useAuthStore(state => state.logout)
+    const setToken = useAuthStore(state => state.setToken)
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         // Convert detailed product to card product for adding to cart
-        addToCart({
+        const cardProduct = {
             id: product.id,
             name: product.name,
             price: product.price,
             description: product.description,
             image: product.images[0],
             category: product.category,
-            inventory: product.inventory
-        },
+            inventory: product.inventory,
+            quantity: quantity
+        }
+
+        // First update local cart
+        addToCart(
+            cardProduct,
             (msg) => toast.success(msg),
             (msg) => toast.error(msg)
         )
+
+        // Then sync with backend if authenticated
+        if (isAuthenticated) {
+            try {
+                await withValidToken(
+                    async (token) => {
+                        await addItemToCart(product.id, quantity, token)
+                    },
+                    { getAccessToken, isAccessTokenExpired, getUser, setToken, logout, router }
+                )
+            } catch (err) {
+                toast.error('Failed to sync cart with server')
+                console.error(err)
+            }
+        }
     }
 
     console.log("product", product);
