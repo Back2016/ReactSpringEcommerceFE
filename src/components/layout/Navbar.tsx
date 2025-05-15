@@ -33,6 +33,8 @@ export function Navbar() {
     }
   }
 
+  const isAdmin = user?.role === 'ADMIN';
+
   return (
     <nav className="border-b">
       <div className="container mx-auto px-4 py-4">
@@ -67,6 +69,11 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin">Admin Dashboard</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href={`/profile/${getUserId()}`}>Profile</Link>
                   </DropdownMenuItem>

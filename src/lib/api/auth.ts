@@ -46,7 +46,16 @@ interface LoginResponse {
     email: string
 }
 
-export async function login(data: LoginRequest): Promise<LoginResponse> {
+export interface AuthResponse {
+    firstName: string;
+    lastName: string;
+    accessToken: string;
+    role: string;
+    userId: number;
+    email: string;
+}
+
+export async function login(data: LoginRequest): Promise<AuthResponse> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: {

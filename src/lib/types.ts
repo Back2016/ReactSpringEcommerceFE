@@ -10,6 +10,7 @@ export interface Image {
     downloadUrl: string
 }
 
+
 export type Product = {
     id: number;
     name: string;
@@ -32,9 +33,36 @@ export type CardProduct = {
 }
 
 export type DetailedProduct = Product & {
+    brand: string;
     longDescription: string;
     productSpecs: Record<string, string>;
 };
+
+export interface AddProductRequest {
+    name: string;
+    brand: string;
+    price: number;
+    inventory: number;
+    description: string;
+    longDescription: string;
+    category: {
+        name: string;
+    };
+}
+
+export interface ProductUpdateRequest {
+    id: number;
+    name: string;
+    brand: string;
+    price: number;
+    inventory: number;
+    description: string;
+    longDescription: string;
+    category: {
+        name: string;
+    };
+}
+
 
 export type CartItem = {
     id: number

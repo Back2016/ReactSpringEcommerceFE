@@ -19,7 +19,7 @@ export function PaginationControls({ currentPage, totalPages }: PaginationProps)
   const goToPage = (page: number) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('page', page.toString())
-    router.push(`${pathname}?${params.toString()}`)
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
   // Show up to 3 pages: [prev, current, next]

@@ -69,13 +69,22 @@ export default function LoginPage() {
       })
 
       if (response) {
+        let resRole;
+        if (!response.role) {
+          resRole = 'USER'
+        } else {
+          resRole = response.role;
+          resRole = resRole.replace("ROLE_", "");
+        }
+
         loginLocally(response.accessToken, {
           id: response.userId,
           firstName: response.firstName,
           lastName: response.lastName,
           email: response.email,
+          role: resRole,
         })
-        toast.success('Login successful!')
+        toast.success(`Login successful! Welcome ${response.firstName} as a ${resRole}`)
         router.push('/')
       }
     } catch (error) {

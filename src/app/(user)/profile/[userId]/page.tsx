@@ -198,13 +198,21 @@ export default function ProfilePage() {
                             )}
                         </div>
                     </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                            <Mail className="h-4 w-4" />
-                            Email Address
-                        </label>
-                        <p className="text-lg font-medium">{user?.email}</p>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                <Mail className="h-4 w-4" />
+                                Email Address
+                            </label>
+                            <p className="text-lg font-medium">{user?.email}</p>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                Role
+                            </label>
+                            <p className="text-lg font-medium">{user?.role}</p>
+                        </div>
                     </div>
                 </div>
             </Card>
