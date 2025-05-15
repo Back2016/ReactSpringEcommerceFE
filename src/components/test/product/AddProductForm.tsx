@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { AddProductRequest } from '@/lib/types';
+import { AddProductRequest, Category } from '@/lib/types';
 import { Plus } from 'lucide-react';
 
 interface AddProductFormProps {
     onSubmit: (data: AddProductRequest) => Promise<void>;
     isLoading: boolean;
+    categories: Category[];
+    selectedCategory: string | null;
 }
 
 const initialFormState: AddProductRequest = {
@@ -19,7 +21,7 @@ const initialFormState: AddProductRequest = {
     category: { name: '' },
 };
 
-export function AddProductForm({ onSubmit, isLoading }: AddProductFormProps) {
+export function AddProductForm({ onSubmit, isLoading, categories, selectedCategory }: AddProductFormProps) {
     const [formData, setFormData] = useState<AddProductRequest>(initialFormState);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -92,20 +94,26 @@ export function AddProductForm({ onSubmit, isLoading }: AddProductFormProps) {
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Category</label>
-                    <input
-                        type="text"
-                        value={formData.category.name}
+                    <select
+                        value={formData.category.name || selectedCategory || ''}
                         onChange={(e) => setFormData({ ...formData, category: { name: e.target.value } })}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                         required
-                    />
+                    >
+                        <option value="" disabled>Select a category</option>
+                        {categories.map((cat) => (
+                            <option key={cat.id} value={cat.name}>
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
                 <button
                     type="submit"
                     disabled={isLoading}
                     className="w-full bg-black text-white px-4 py-2 rounded-lg disabled:bg-gray-300 flex items-center justify-center"
                 >
-                    <Plus className="w-4 h-4 mr-2" strokeWidth={4}/>
+                    <Plus className="w-4 h-4 mr-2" strokeWidth={4} />
                     {isLoading ? 'Adding...' : 'Add Product'}
                 </button>
 

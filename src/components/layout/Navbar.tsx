@@ -39,16 +39,17 @@ export function Navbar() {
     <nav className="border-b">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-4xl font-bold">
+          <Link href="/" className="text-4xl font-bold flex items-center gap-2">
             DemoBuy
+            <ShoppingCart className="h-10 w-10" />
           </Link>
 
           <div className="flex items-center gap-4">
             <Link href="/products">
-              <Button variant="ghost">View All Products</Button>
+              <Button variant="ghost">All Products</Button>
             </Link>
             <Link href="/categories">
-              <Button variant="ghost">View All Categories</Button>
+              <Button variant="ghost">Shop By Categories</Button>
             </Link>
             <Link href="/cart">
               <Button variant="ghost" className="relative">

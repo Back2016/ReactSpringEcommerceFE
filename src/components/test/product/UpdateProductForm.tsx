@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { DetailedProduct, ProductUpdateRequest } from '@/lib/types';
+import { DetailedProduct, ProductUpdateRequest, Category } from '@/lib/types';
 
 interface UpdateProductFormProps {
     product: DetailedProduct;
     onSubmit: (data: Omit<ProductUpdateRequest, 'id'>) => Promise<void>;
     onCancel: () => void;
     isLoading: boolean;
+    categories: Category[];
 }
 
 const initialUpdateState: Omit<ProductUpdateRequest, 'id'> = {
@@ -20,7 +21,7 @@ const initialUpdateState: Omit<ProductUpdateRequest, 'id'> = {
     category: { name: '' },
 };
 
-export function UpdateProductForm({ product, onSubmit, onCancel, isLoading }: UpdateProductFormProps) {
+export function UpdateProductForm({ product, onSubmit, onCancel, isLoading, categories }: UpdateProductFormProps) {
     const [updateData, setUpdateData] = useState<Omit<ProductUpdateRequest, 'id'>>({
         name: product.name,
         brand: product.brand || '',
@@ -100,13 +101,19 @@ export function UpdateProductForm({ product, onSubmit, onCancel, isLoading }: Up
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Category</label>
-                    <input
-                        type="text"
+                    <select
                         value={updateData.category.name}
                         onChange={(e) => setUpdateData({ ...updateData, category: { name: e.target.value } })}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                         required
-                    />
+                    >
+                        <option value="" disabled>Select a category</option>
+                        {categories.map((cat) => (
+                            <option key={cat.id} value={cat.name}>
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
                 <div className="flex space-x-2">
                     <button

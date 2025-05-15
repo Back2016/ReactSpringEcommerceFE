@@ -51,6 +51,28 @@ export async function fetchPaginatedProductsByCategory(categoryName: string, cur
   return response.data;
 }
 
+
+
+export async function fetchPaginatedProductsByName(name: string, page: number, limit = 12) {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/products/search?name=${encodeURIComponent(name)}&page=${page}&limit=${limit}`);
+    if (!res.ok) {
+        throw new Error('Failed to fetch products');
+    }
+
+    const response = await res.json();
+
+    return response.data;
+}
+
+export async function fetchProductSuggestions(query: string): Promise<string[]> {
+  const res = await fetch(`/api/v1/products/suggestions?query=${encodeURIComponent(query)}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch suggestions: ${res.status}`);
+  }
+  return res.json();
+}
+
+
 // Admin-only: Add a new product
 export async function addProduct(product: AddProductRequest, token: string) {
   console.log('Sending token:', token);

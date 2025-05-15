@@ -42,6 +42,9 @@ export default function ProductTestPage() {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [productToDeleteId, setProductToDeleteId] = useState<number | null>(null);
+
 
     useEffect(() => {
         setHydrated(true);
@@ -181,6 +184,8 @@ export default function ProductTestPage() {
                 { getAccessToken, isAccessTokenExpired, getUser, setToken, logout, router }
             );
             toast.success('Product deleted successfully');
+            setSelectedProduct(null);
+            setDeleteModalOpen(false);
             fetchProducts();
         } catch (error) {
             toast.error('Failed to delete product');
@@ -202,6 +207,8 @@ export default function ProductTestPage() {
             </div>
         );
     }
+
+    const productToDelete = products.find(p => p.id === productToDeleteId);
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -263,7 +270,10 @@ export default function ProductTestPage() {
                         products={products}
                         isLoading={isLoading}
                         onEdit={handleEdit}
-                        onDelete={handleDeleteProduct}
+                        onDelete={(product) => {
+                            setProductToDeleteId(product.id);
+                            setDeleteModalOpen(true);
+                        }}
                         onUpload={(product) => { setImageUploadProduct(product); setUploadModalOpen(true); }}
                         onImageClick={(img) => setViewImage(img)}
                     />
@@ -298,6 +308,33 @@ export default function ProductTestPage() {
                 }}
             />
 
+            {deleteModalOpen && productToDeleteId !== null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full flex flex-col items-center relative">
+                        <h2 className="text-xl font-semibold mb-4">Delete Product</h2>
+                        <p className="mb-4">
+                            Are you sure you want to delete{' '}
+                            <span className="font-semibold text-red-600">
+                                {productToDelete?.name || 'this product'}
+                            </span>
+                            ?
+                        </p>
+                        <div className="flex gap-4">
+                            <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
+                            <Button variant="destructive"
+                                onClick={() => {
+                                    if (productToDeleteId !== null) {
+                                        handleDeleteProduct(productToDeleteId);
+                                        setDeleteModalOpen(false);
+                                        setProductToDeleteId(null);
+                                    }
+                                }
+                                }>Delete</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {editModalOpen && selectedProduct && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
                     <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full flex flex-col items-center relative">
@@ -313,6 +350,7 @@ export default function ProductTestPage() {
                             onSubmit={handleUpdateProduct}
                             onCancel={() => { setEditModalOpen(false); setSelectedProduct(null); }}
                             isLoading={isLoading}
+                            categories={categories}
                         />
                     </div>
                 </div>
@@ -334,6 +372,8 @@ export default function ProductTestPage() {
                                 setAddModalOpen(false);
                             }}
                             isLoading={isLoading}
+                            categories={categories}
+                            selectedCategory={selectedCategory}
                         />
                     </div>
                 </div>

@@ -8,7 +8,7 @@ import { CartSyncOnLogin } from "@/components/syncCart/CartSyncOnLogin";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "E-Commerce Store",
+  title: "DemoBuy | A NextJS + Spring Boot e-commerce store",
   description: "A modern e-commerce store built with Next.js",
 };
 

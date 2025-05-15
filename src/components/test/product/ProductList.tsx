@@ -6,7 +6,7 @@ interface ProductListProps {
   products: Product[];
   isLoading: boolean;
   onEdit: (product: Product) => void;
-  onDelete: (productId: number) => void;
+  onDelete: (product: Product) => void;
   onUpload: (product: Product) => void;
   onImageClick: (image: { url: string; id: number }) => void;
 }
@@ -37,7 +37,7 @@ export function ProductList({ products, isLoading, onEdit, onDelete, onUpload, o
                   <Button size="icon" className="bg-black hover:bg-neutral-800 text-white" onClick={() => onEdit(product)} aria-label="Edit">
                     <Pencil className="w-4 h-4" />
                   </Button>
-                  <Button size="icon" className="bg-gray-400 hover:bg-gray-500 text-white" onClick={() => onDelete(product.id)} aria-label="Delete">
+                  <Button size="icon" className="bg-gray-400 hover:bg-gray-500 text-white" onClick={() => onDelete(product)} aria-label="Delete">
                     <Trash className="w-4 h-4" />
                   </Button>
                   <Button size="icon" className="bg-blue-500 hover:bg-blue-600 text-white" onClick={() => onUpload(product)} aria-label="Upload Image">

@@ -3,6 +3,7 @@ import CategoryProductsPage from "@/components/page/categoryProducts/CategoryPro
 import { Product } from "@/lib/types";
 import { fetchPaginatedProductsByCategory } from "@/lib/api/product";
 import { convertHyphenToAmpersand } from "@/lib/utils";
+import ProductSearchBar from "@/components/page/search/SearchBar";
 
 type Props = {
   params: Promise<{ categoryName: string }>;
@@ -31,10 +32,21 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   }));
 
   return (
-    <CategoryProductsPage
-      categoryProducts={cardProducts}
-      currentPage={paginatedResponse.currentPage}
-      totalPages={paginatedResponse.totalPages}
-    />
+    <div>
+      {/* Search Bar Section */}
+      <section className="w-full flex items-center mt-3 mb-5 justify-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-2xl mx-auto">
+          <ProductSearchBar />
+        </div>
+      </section>
+      {/* Category Products Section */}
+      <section className="px-4 sm:px-6 lg:px-8">
+        <CategoryProductsPage
+          categoryProducts={cardProducts}
+          currentPage={paginatedResponse.currentPage}
+          totalPages={paginatedResponse.totalPages}
+        />
+      </section>
+    </div>
   )
 }

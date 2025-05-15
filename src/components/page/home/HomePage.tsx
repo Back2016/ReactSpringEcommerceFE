@@ -17,6 +17,8 @@ import { convertAmpersandToHyphen } from '@/lib/utils'
 import { withValidToken } from '@/lib/api/auth'
 import { useRouter } from 'next/navigation'
 import { addItemToCart } from '@/lib/api/cart'
+import ProductSearchBar from '@/components/page/search/SearchBar';
+
 
 type Props = {
   featuredProducts: CardProduct[];
@@ -90,8 +92,15 @@ export default function HomePage({ featuredProducts, categories }: Props) {
 
   return (
     <div className="space-y-12">
+      {/* Search Bar Section */}
+      <section className="w-full flex items-center mt-3 mb-5 justify-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-2xl mx-auto">
+          <ProductSearchBar />
+        </div>
+      </section>
+
       {/* Categories Section */}
-      <section className="relative">
+      <section className="relative px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
         <div className="relative group">
           <Swiper
@@ -104,15 +113,9 @@ export default function HomePage({ featuredProducts, categories }: Props) {
             }}
             pagination={{ clickable: true }}
             breakpoints={{
-              640: {
-                slidesPerView: 2,
-              },
-              768: {
-                slidesPerView: 3,
-              },
-              1024: {
-                slidesPerView: 4,
-              },
+              640: { slidesPerView: 2 },
+              768: { slidesPerView: 3 },
+              1024: { slidesPerView: 4 },
             }}
             className="pb-12"
           >
@@ -136,16 +139,16 @@ export default function HomePage({ featuredProducts, categories }: Props) {
             ))}
           </Swiper>
 
-          {/* Custom Navigation Buttons */}
+          {/* Custom Swiper Buttons */}
           <div className="swiper-button-prev !w-12 !h-12 !bg-gray-800/90 hover:!bg-gray-900 !rounded-full !text-white !left-0 !top-1/2 !-translate-y-1/2 !-translate-x-1/2 after:!text-xl"></div>
           <div className="swiper-button-next !w-12 !h-12 !bg-gray-800/90 hover:!bg-gray-900 !rounded-full !text-white !right-0 !top-1/2 !-translate-y-1/2 !translate-x-1/2 after:!text-xl"></div>
         </div>
       </section>
 
       {/* Featured Products Section */}
-      <section>
+      <section className="px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-bold mb-6">Featured Products</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredProducts.map((product) => (
             <ProductCard
               key={product.id}
