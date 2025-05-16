@@ -7,9 +7,12 @@ import { updateUser } from '@/lib/api/user'
 import { withValidToken } from '@/lib/api/auth'
 import toast from 'react-hot-toast'
 import { Card } from '@/components/ui/card'
-import { User, Mail, Loader2, Edit2, Check, X } from 'lucide-react'
+import { User, Mail, Loader2, Edit2, Check, X, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { AddressDto } from '@/lib/types'
+import { getAddresses } from '@/lib/api/address'
+import { AddressModal } from '@/components/page/address/AddressModal'
 
 export default function ProfilePage() {
     const [hydrated, setHydrated] = useState(false)
@@ -36,6 +39,17 @@ export default function ProfilePage() {
     const getAccessToken = useAuthStore(state => state.getAccessToken)
 
     const [loading, setLoading] = useState(true)
+
+    const [addresses, setAddresses] = useState<AddressDto[]>([])
+    const [editingAddress, setEditingAddress] = useState<AddressDto | undefined>(undefined)
+    const [modalMode, setModalMode] = useState<'add' | 'edit'>('edit')
+    const [showModal, setShowModal] = useState(false)
+
+    const openEditModal = (address: AddressDto) => {
+        setModalMode('edit')
+        setEditingAddress(address)
+        setShowModal(true)
+    }
 
     useEffect(() => {
         const validateAndRefresh = async () => {
@@ -67,6 +81,35 @@ export default function ProfilePage() {
 
         validateAndRefresh()
     }, [isAuthenticated, userId, hydrated])
+
+    const fetchAddresses = async () => {
+        try {
+            const token = getAccessToken()
+            if (!token) {
+                return
+            }
+
+            const res = await getAddresses(token)
+            setAddresses(res)
+        } catch (err) {
+            toast.error("Failed to load addresses")
+        }
+    }
+
+    useEffect(() => {
+        if (hydrated) fetchAddresses()
+    }, [hydrated])
+
+    const defaultAddresses = addresses.filter((a, i, self) =>
+        a.defaultShipping || a.defaultBilling &&
+        self.findIndex(x => x.id === a.id) === i // prevent duplicates
+    )
+
+    const nonDefaultAddresses = addresses.filter(
+        a => !a.defaultShipping && !a.defaultBilling
+    )
+
+
 
     const handleEditClick = () => {
         setEditForm({
@@ -216,6 +259,84 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </Card>
+
+            <Card className="max-w-2xl mx-auto mt-12 p-8">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-semibold">Your Address Book</h2>
+                    <Button size="sm" onClick={() => {
+                        setModalMode('add')
+                        setEditingAddress(undefined)
+                        setShowModal(true)
+                    }}>
+                        <Plus className="h-4 w-4" strokeWidth={3} />
+                        New Address
+                    </Button>
+                </div>
+
+                {!addresses.length ? (
+                    <p className="text-muted-foreground">No saved addresses.</p>
+                ) : (
+                    <div className="space-y-4">
+                        {defaultAddresses.concat(nonDefaultAddresses).map((address) => (
+                            <div
+                                key={address.id}
+                                className="border rounded-lg p-4 shadow-sm flex justify-between items-start gap-4"
+                            >
+                                <div>
+                                    <p className="font-medium">{address.recipientName}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {address.street}, {address.city}, {address.state}, {address.country}, {address.zipcode}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">Phone: {address.phone}</p>
+
+                                    <div className="flex gap-2 mt-2">
+                                        {address.defaultShipping && (
+                                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                                Default Shipping
+                                            </span>
+                                        )}
+                                        {address.defaultBilling && (
+                                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                                Default Billing
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => openEditModal(address)}
+                                >
+                                    Edit
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </Card>
+
+            {showModal && (
+                <AddressModal
+                    mode={modalMode}
+                    address={editingAddress}
+                    onClose={() => setShowModal(false)}
+                    onSuccess={(savedAddress) => {
+                        setShowModal(false)
+                        setAddresses(prev => {
+                            const exists = prev.find(a => a.id === savedAddress.id)
+                            if (exists) {
+                                return prev.map(a => a.id === savedAddress.id ? savedAddress : a)
+                            } else {
+                                return [...prev, savedAddress]
+                            }
+                        })
+                    }}
+                    onRefresh={() => {
+                        fetchAddresses()
+                    }}
+                />
+            )}
+
         </div>
     )
 }
