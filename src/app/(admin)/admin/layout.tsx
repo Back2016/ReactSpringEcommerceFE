@@ -15,15 +15,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen">
       <div className="w-full px-6 py-6">
-        <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
-        <div className="flex gap-4 mb-6 border-b pb-2">
+        <div className="flex gap-4 mb-8 border-b pb-4">
           {tabs.map(tab => (
             <Link
               key={tab.href}
               href={tab.href}
               className={cn(
-                'px-4 py-2 rounded-md text-sm font-medium',
+                'px-6 py-3 rounded-md text-base font-semibold transition',
                 pathname.startsWith(tab.href)
                   ? 'bg-black text-white'
                   : 'text-muted-foreground hover:bg-muted'

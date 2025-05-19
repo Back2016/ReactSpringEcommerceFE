@@ -121,7 +121,7 @@ export default function HomePage({ featuredProducts, categories }: Props) {
           >
             {categories.map((category) => (
               <SwiperSlide key={category.id}>
-                <Link href={`/${convertAmpersandToHyphen(category.name)}`}>
+                <Link href={`/categories/${convertAmpersandToHyphen(category.name)}`}>
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="aspect-square relative">
                       <img

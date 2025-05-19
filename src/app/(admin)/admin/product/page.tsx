@@ -211,8 +211,7 @@ export default function ProductTestPage() {
     const productToDelete = products.find(p => p.id === productToDeleteId);
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold mb-8">Manage Products</h1>
+        <div className="container py-8">
 
             <div className="flex flex-col gap-8 lg:flex-col lg:items-start">
                 {/* Add Product Form Card */}
@@ -265,7 +264,6 @@ export default function ProductTestPage() {
                             </Button>
                         </div>
                     </div>
-                    <h2 className="text-xl font-semibold mb-4 px-6">Products</h2>
                     <ProductList
                         products={products}
                         isLoading={isLoading}

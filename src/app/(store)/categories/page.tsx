@@ -15,7 +15,7 @@ export default async function CategoriesPage() {
                 {categories.map((category: Category) => (
                     <Link
                         key={category.id}
-                        href={`/${convertAmpersandToHyphen(category.name)}`}
+                        href={`/categories/${convertAmpersandToHyphen(category.name)}`}
                         className="block group"
                     >
                         <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg">

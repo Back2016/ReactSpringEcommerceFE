@@ -1,164 +1,204 @@
 'use client'
 
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useState } from 'react'
-import { AddressDto } from '@/lib/types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { updateAddress, addAddress, setDefaultShipping, setDefaultBilling } from '@/lib/api/address'
+import {
+  updateAddress,
+  addAddress,
+  setDefaultShipping,
+  setDefaultBilling,
+  deleteAddress
+} from '@/lib/api/address'
 import { useAuthStore } from '@/store/useAuthStore'
+import { AddressDto } from '@/lib/types'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { addressSchema as schema } from '@/lib/schemas'
+
+type FormValues = z.infer<typeof schema>
 
 interface AddressModalProps {
-    mode: 'edit' | 'add'
-    address?: AddressDto
-    onClose: () => void
-    onSuccess: (address: AddressDto) => void
-    onRefresh?: () => void
+  mode: 'edit' | 'add'
+  address?: AddressDto
+  onClose: () => void
+  onSuccess: (address: AddressDto) => void
+  onRefresh?: () => void
 }
 
 export function AddressModal({ mode, address, onClose, onSuccess, onRefresh }: AddressModalProps) {
-    const getAccessToken = useAuthStore(state => state.getAccessToken)
-    const [form, setForm] = useState<AddressDto>(
-        address ?? {
-            recipientName: '',
-            street: '',
-            city: '',
-            state: '',
-            country: '',
-            phone: '',
-            defaultShipping: false,
-            defaultBilling: false,
-            zipcode: '',
-        }
-    )
-    const [loading, setLoading] = useState(false)
+  const getAccessToken = useAuthStore(state => state.getAccessToken)
+  const [loading, setLoading] = useState(false)
 
-    const handleChange = (field: keyof AddressDto, value: string | boolean) => {
-        setForm(prev => ({
-            ...prev,
-            [field]: value,
-        }))
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      recipientName: address?.recipientName || '',
+      street: address?.street || '',
+      city: address?.city || '',
+      state: address?.state || '',
+      zipcode: address?.zipcode || '',
+      country: address?.country || '',
+      phone: address?.phone || '',
+      defaultShipping: address?.defaultShipping ?? false,
+      defaultBilling: address?.defaultBilling ?? false
+    }
+  })
+
+  const onSubmit = async (data: FormValues) => {
+    const token = getAccessToken()
+    if (!token) {
+      toast.error('Missing access token')
+      return
     }
 
-    const handleSubmit = async () => {
-        const token = getAccessToken()
-        if (!token) {
-            toast.error('Missing access token')
-            return
+    setLoading(true)
+    try {
+      let saved: AddressDto
+
+      if (mode === 'edit' && address?.id) {
+        saved = await updateAddress(
+          address.id,
+          {
+            ...data,
+            defaultShipping: data.defaultShipping ?? false,
+            defaultBilling: data.defaultBilling ?? false
+          },
+          token
+        )
+        if (data.defaultShipping) await setDefaultShipping(address.id, token)
+        if (data.defaultBilling) await setDefaultBilling(address.id, token)
+        toast.success('Address updated')
+      } else {
+        saved = await addAddress(
+          {
+            ...data,
+            defaultShipping: data.defaultShipping ?? false,
+            defaultBilling: data.defaultBilling ?? false
+          },
+          token
+        )
+        if (saved.id) {
+          if (data.defaultShipping) await setDefaultShipping(saved.id, token)
+          if (data.defaultBilling) await setDefaultBilling(saved.id, token)
         }
+        toast.success('Address added')
+      }
 
-        setLoading(true)
+      onSuccess(saved)
+      if (data.defaultShipping || data.defaultBilling) {
+        onRefresh?.()
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Operation failed')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-        try {
-            let saved: AddressDto
+  const handleDelete = async () => {
+    if (!address?.id) return
 
-            if (mode === 'edit' && form.id) {
-                saved = await updateAddress(form.id, form, token)
-
-                if (form.defaultShipping) {
-                    await setDefaultShipping(form.id, token)
-                }
-
-                if (form.defaultBilling) {
-                    await setDefaultBilling(form.id, token)
-                }
-
-                toast.success('Address updated')
-            } else {
-                saved = await addAddress(form, token)
-                toast.success('Address added')
-            }
-
-            onSuccess(saved)
-
-            if (form.defaultShipping || form.defaultBilling) {
-                onRefresh?.()
-            }
-        } catch (err: any) {
-            toast.error(err.message || 'Operation failed')
-        } finally {
-            setLoading(false)
-        }
+    const token = getAccessToken()
+    if (!token) {
+      toast.error('Missing access token')
+      return
     }
 
+    setLoading(true)
+    try {
+      await deleteAddress(address.id, token)
+      toast.success('Address deleted')
+      onClose()
+      onRefresh?.()
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete address')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    return (
-        <Dialog open={true} onOpenChange={onClose}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{mode === 'edit' ? 'Edit Address' : 'Add New Address'}</DialogTitle>
-                </DialogHeader>
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{mode === 'edit' ? 'Edit Address' : 'Add New Address'}</DialogTitle>
+        </DialogHeader>
 
-                <div className="space-y-4 mt-2">
-                    <Input
-                        value={form.recipientName}
-                        onChange={e => handleChange('recipientName', e.target.value)}
-                        placeholder="Recipient Name"
-                    />
-                    <Input
-                        value={form.street}
-                        onChange={e => handleChange('street', e.target.value)}
-                        placeholder="Street"
-                    />
-                    <Input
-                        value={form.city}
-                        onChange={e => handleChange('city', e.target.value)}
-                        placeholder="City"
-                    />
-                    <Input
-                        value={form.state}
-                        onChange={e => handleChange('state', e.target.value)}
-                        placeholder="State"
-                    />
-                    <Input
-                        value={form.zipcode}
-                        onChange={e => handleChange('zipcode', e.target.value)}
-                        placeholder="Zip Code"
-                    />
-                    <Input
-                        value={form.country}
-                        onChange={e => handleChange('country', e.target.value)}
-                        placeholder="Country"
-                    />
-                    <Input
-                        value={form.phone}
-                        onChange={e => handleChange('phone', e.target.value)}
-                        placeholder="Phone"
-                    />
-                </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
+          {[
+            { name: 'recipientName', label: 'Name' },
+            { name: 'street', label: 'Street' },
+            { name: 'city', label: 'City' },
+            { name: 'state', label: 'State' },
+            { name: 'zipcode', label: 'Zip Code' },
+            { name: 'country', label: 'Country' },
+            { name: 'phone', label: 'Phone' }
+          ].map(({ name, label }) => (
+            <div key={name} className="space-y-2">
+              <Label htmlFor={name}>{label}</Label>
+              <Input id={name} {...register(name as keyof FormValues)} placeholder={label} />
+              {errors[name as keyof FormValues] && (
+                <p className="text-sm text-red-500">{errors[name as keyof FormValues]?.message?.toString()}</p>
+              )}
+            </div>
+          ))}
 
-                {mode === 'edit' && (
-                    <div className="space-y-2 mt-4">
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                checked={form.defaultShipping}
-                                onChange={(e) => handleChange('defaultShipping', e.target.checked)}
-                            />
-                            <label className="text-sm text-muted-foreground">Set as Default Shipping</label>
-                        </div>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="defaultShipping"
+                checked={watch('defaultShipping')}
+                onCheckedChange={val => setValue('defaultShipping', val as boolean)}
+              />
+              <Label htmlFor="defaultShipping">Set as Default Shipping</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="defaultBilling"
+                checked={watch('defaultBilling')}
+                onCheckedChange={val => setValue('defaultBilling', val as boolean)}
+              />
+              <Label htmlFor="defaultBilling">Set as Default Billing</Label>
+            </div>
+          </div>
 
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                checked={form.defaultBilling}
-                                onChange={(e) => handleChange('defaultBilling', e.target.checked)}
-                            />
-                            <label className="text-sm text-muted-foreground">Set as Default Billing</label>
-                        </div>
-                    </div>
-                )}
+          <div className="flex justify-between items-center gap-3 pt-4">
+            {mode === 'edit' && (
+              <Button
+                type="button"
+                className="bg-white border border-red-500 text-red-600 hover:bg-red-50"
+                onClick={handleDelete}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
+              </Button>
+            )}
 
+            <div className="ml-auto flex gap-3">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+              </Button>
+            </div>
+          </div>
 
-                <div className="flex justify-end mt-6 gap-2">
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
-                    <Button onClick={handleSubmit} disabled={loading}>
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
 }

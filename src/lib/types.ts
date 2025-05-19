@@ -164,9 +164,22 @@ export interface Order {
     items: OrderItem[]
     shippingAddress: AddressDto
     billingAddress: AddressDto
+    guestEmail?: string
 }
 
 export interface PlaceOrderRequest {
     shippingAddressId: number
     billingAddressId: number
+}
+
+export interface PlaceGuestOrderRequest {
+    guestEmail: string
+    shippingAddress: AddressDto
+    billingAddress: AddressDto
+    items: {
+      quantity: number
+      unitPrice: number
+      totalPrice: number
+      product: Product
+    }[]
 }

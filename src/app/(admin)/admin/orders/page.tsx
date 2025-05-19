@@ -61,9 +61,8 @@ export default function AdminOrdersPage() {
     }
 
     return (
-        <div className="container py-8">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Manage Orders</h1>
+        <div className="container py-2">
+            <div className="flex justify-end items-center mb-6">
                 <Select value={status} onValueChange={handleStatusChange}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Filter by Status" />
@@ -85,6 +84,12 @@ export default function AdminOrdersPage() {
                                     <div className="flex-1 space-y-1">
                                         <p className="font-semibold">Order #{order.id}</p>
                                         <p className="text-muted-foreground text-sm">Placed on {order.orderDate}</p>
+                                        <p className="text-muted-foreground text-sm">
+                                            {order.userId
+                                                ? `User ID: ${order.userId}`
+                                                : `Guest: ${order.guestEmail}`}
+                                        </p>
+
                                         <div className="flex items-center gap-2 mt-2">
                                             <p className="text-sm mt-1">{order.items.length} item(s)</p>
                                             {Array.from(new Set(order.items.map(i => i.productId))) // unique productIds

@@ -133,7 +133,7 @@ export const withValidToken = async <T,>(
             const currentUser = getUser()
             if (currentUser) {
                 setToken(accessToken)
-                toast.success('Access token refreshed')
+                console.log('Access token refreshed')
                 return await apiCall(accessToken)
             } else {
                 logout()

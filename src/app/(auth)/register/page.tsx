@@ -143,7 +143,6 @@ export default function RegisterPage() {
                 id={field}
                 name={field}
                 type="text"
-                placeholder={field === 'firstName' ? 'John' : 'Doe'}
                 value={formData[field as keyof typeof formData]}
                 onChange={handleChange}
                 onBlur={handleBlur}

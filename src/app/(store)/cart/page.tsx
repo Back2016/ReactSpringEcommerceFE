@@ -42,7 +42,6 @@ export default function CartPage() {
       if (!hydrated) return
 
       if (!isAuthenticated) {
-        router.push('/login')
         return
       }
 

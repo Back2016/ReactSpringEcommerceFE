@@ -1,11 +1,12 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
+import { useRouter } from 'next/navigation'
 interface CartSummaryProps {
   total: number
 }
 
 export function CartSummary({ total }: CartSummaryProps) {
+  const router = useRouter()
   return (
     <Card>
       <CardHeader>
@@ -26,7 +27,7 @@ export function CartSummary({ total }: CartSummaryProps) {
             <span>${total.toFixed(2)}</span>
           </div>
         </div>
-        <Button className="w-full">Proceed to Checkout</Button>
+        <Button className="w-full" onClick={() => router.push('/checkout')}>Proceed to Checkout</Button>
       </CardContent>
     </Card>
   )
