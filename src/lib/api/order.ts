@@ -131,3 +131,21 @@ export async function getGuestOrderByIdandEmail(orderId: number, email: string):
   const response = await res.json()
   return response.data
 }
+
+export async function createPaymentIntent(orderId: number): Promise<{ clientSecret: string }> {
+  const res = await fetch(`${BASE_API}/paymentIntent`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ orderId })
+  })
+
+  if (!res.ok) {
+    const error = await res.json()
+    throw new Error(error.message || 'Failed to create payment intent')
+  }
+
+  const response = await res.json()
+  return response
+}
